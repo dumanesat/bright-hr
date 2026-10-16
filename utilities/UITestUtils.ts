@@ -6,8 +6,7 @@ import { initElements } from "../GlobalPage";
 export const test = base_test.extend({page: async ({ page }, use: Function) => {
 
   // add the steps that are needed for UI setup here ...
-    await page.goto(`${process.env.URL}`);
-    await page.waitForLoadState("networkidle");
+    await page.goto(`${process.env.URL}`, { waitUntil: "domcontentloaded" });
 
 
     initElements(page);
