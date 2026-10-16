@@ -68,22 +68,16 @@ test.describe("Employee management", () => {
         expect(matchingProfileFound, `No profile matched ${fullName} and ${addedEmployee.email}`)
           .toBe(true);
         await expect(viewOrEditEmployeeProfilePage.firstNameInput).toHaveValue(addedEmployee.firstName);
-        await page.waitForTimeout(1000);
         await expect(viewOrEditEmployeeProfilePage.lastNameInput).toHaveValue(addedEmployee.lastName);
-        await page.waitForTimeout(1000);
         await expect(viewOrEditEmployeeProfilePage.emailAddressInput).toHaveValue(addedEmployee.email);
-        await page.waitForTimeout(1000);
         if (addedEmployee.phoneNumber !== undefined) {
           await expect(viewOrEditEmployeeProfilePage.phoneNumberInput).toHaveValue(addedEmployee.phoneNumber);
-          await page.waitForTimeout(1000);
         }
         if (addedEmployee.startDate !== undefined) {
           await expect(viewOrEditEmployeeProfilePage.startDateInput).toHaveValue(addedEmployee.startDate);
-          await page.waitForTimeout(1000);
         }
         if (addedEmployee.jobTitle !== undefined) {
           await expect(viewOrEditEmployeeProfilePage.jobTitleInput).toHaveValue(addedEmployee.jobTitle);
-          await page.waitForTimeout(1000);
         }
         await homePage.clickEmployees();
       });
