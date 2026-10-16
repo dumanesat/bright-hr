@@ -9,9 +9,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: 4,
+  workers: process.env.CI ? 1 : 4,
   reporter: 'html',
   use: {
+    headless: !!process.env.CI,
     trace: "retain-on-failure",
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

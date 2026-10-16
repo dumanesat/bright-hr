@@ -2,13 +2,18 @@ import { BasePage } from "./BasePage";
 
 export class HomePage extends BasePage {
   // Page Locators:
-  public readonly searchBox = this.locator("#element1");
+  public readonly employeesMenu = BasePage.page.getByTestId("sideBar").getByRole("link", {
+    name: "Employees",
+    exact: true,
+  });
+  
 
 
   
   // Page Actions:
-  async enterSearchBox(input: string) {
-    await this.searchBox.fill(input);
+  public async clickEmployees(): Promise<void> {
+    await this.employeesMenu.click();
   }
+
 
 }
