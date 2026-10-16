@@ -10,7 +10,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 1,
   workers: process.env.CI ? 1 : 4,
-  reporter: 'html',
+  reporter: [
+    ['line'],
+    ['html', { open: 'never' }],
+    ['allure-playwright', { resultsDir: 'allure-results' }],
+  ],
   use: {
     headless: !!process.env.CI,
     trace: "retain-on-failure",
