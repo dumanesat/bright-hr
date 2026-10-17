@@ -9,10 +9,7 @@
     "test:tag:headed": "npx playwright test --headed --grep @tagName",
     "test-smoke": "npx playwright test --grep @smoke",
     "report": "npx playwright show-report",
-    "allure:clean": "node -e \"require('node:fs').rmSync('allure-results', { recursive: true, force: true })\"",
-    "test:employee": "npm run allure:clean && playwright test tests/ui-test-example.spec.ts",
-    "allure:generate": "allure generate allure-results --output allure-report --clean",
-    "allure:open": "allure open allure-report"
+    "test:employee": "playwright test tests/ui-test-example.spec.ts"
   },
   "keywords": [],
   "author": "",
@@ -23,8 +20,6 @@
     "@playwright/test": "^1.56.0",
     "@types/node": "^24.7.0",
     "@types/pg": "^8.15.6",
-    "allure": "^3.21.0",
-    "allure-playwright": "^3.13.0",
     "dotenv": "^17.2.3"
   }
 }

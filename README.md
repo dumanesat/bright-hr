@@ -158,25 +158,6 @@ npx playwright test --grep "@smoke"
 
 ---
 
-## Allure reports
-
-Run the employee test with fresh Allure results, generate the HTML dashboard, and open it:
-
-```bash
-npm run test:employee
-npm run allure:generate
-npm run allure:open
-```
-
-Generate the report even if the test fails. Results are stored in `allure-results/`
-and the generated dashboard is in `allure-report/`. Both directories are ignored by Git.
-Allure 3 runs on Node.js without a separate Java installation.
-
-GitHub Actions uploads an `allure-report` artifact containing the dashboard and raw
-results. With GitHub Pages enabled using the GitHub Actions source, the dashboard
-is published at https://dumanesat.github.io/bright-hr/allure/.
-The standard Playwright HTML report remains available at the site root.
-
 ## Framework practices
 
 1.  **Use Page Objects:** Keep locators and actions in `pages/` to make tests readable and maintainable.

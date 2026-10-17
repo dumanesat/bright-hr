@@ -13,7 +13,6 @@ export default defineConfig({
   reporter: [
     ['line'],
     ['html', { open: 'never' }],
-    ['allure-playwright', { resultsDir: 'allure-results' }],
   ],
   use: {
     headless: !!process.env.CI,
