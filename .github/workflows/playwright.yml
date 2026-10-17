@@ -40,11 +40,45 @@ jobs:
         run: npm ci
       - name: Install Chrome and system dependencies
         run: npx playwright install --with-deps chrome
+      - name: Set up Java for Allure
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Restore Allure history
+        uses: actions/cache/restore@v4
+        with:
+          path: allure-report/history
+          key: allure-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            allure-history-${{ runner.os }}-${{ github.ref_name }}-
       - name: Run employee test
         run: npm run test:employee
+      - name: Redact report credentials
+        if: ${{ !cancelled() }}
+        id: redact
+        run: npm run report:redact
+      - name: Generate Allure dashboard
+        if: ${{ !cancelled() && steps.redact.outcome == 'success' && hashFiles('allure-results/*-result.json') != '' }}
+        id: allure
+        run: npm run allure:generate
+      - name: Upload Allure dashboard
+        if: ${{ !cancelled() && steps.allure.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Save Allure history
+        if: ${{ !cancelled() && steps.allure.outcome == 'success' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        uses: actions/cache/save@v4
+        with:
+          path: allure-report/history
+          key: allure-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Upload Playwright report
         id: report
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.redact.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

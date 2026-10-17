@@ -1,9 +1,16 @@
+import * as allure from "allure-js-commons";
 import { loginPage, homePage, employeePage, viewOrEditEmployeeProfilePage } from "../GlobalPage";
 import { createEmployeeData } from "../test-data/EmployeeDataFactory";
 import { test, expect } from "../utilities/UITestUtils";
 
 test.describe("Employee management", () => {
   test("adds two employees with all required and optional fields", async ({ page }) => {
+    await allure.parentSuite("BrightHR");
+    await allure.suite("Employee Management");
+    await allure.feature("Employee Management");
+    await allure.severity("critical");
+    await allure.description("Create two employees and verify their required and optional profile fields using full name and email.");
+
     const username = process.env.BRIGHTHR_EMAIL;
     const password = process.env.BRIGHTHR_PASSWORD;
 

@@ -11,8 +11,14 @@ export default defineConfig({
   retries: 1,
   workers: process.env.CI ? 1 : 4,
   reporter: [
+    ['./utilities/CredentialRedactionReporter.ts'],
     ['line'],
     ['html', { open: 'never' }],
+    ['allure-playwright', {
+      resultsDir: 'allure-results',
+      detail: false,
+      environmentInfo: { node: process.version, platform: process.platform },
+    }],
   ],
   use: {
     headless: !!process.env.CI,

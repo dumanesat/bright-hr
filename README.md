@@ -164,3 +164,44 @@ npx playwright test --grep "@smoke"
 2.  **Environment Variables:** Never hardcode credentials or URLs. Use `.env`.
 3.  **Use Templates:** Duplicate the example files in `tests/` to start new test suites quickly.
 4.  **Wait for Elements:** Playwright auto-waits, but if needed, use assertions like `toBeVisible()` instead of hard sleeps.
+
+
+## Allure Report (Türkçe)
+
+Allure 2 klasik dashboard'u için Java 11+ gerekir (`java -version`). CI Java 17 kullanır.
+Mevcut Playwright HTML raporu ve tarayıcı ayarları korunur.
+
+```bash
+npm ci
+npm run test:employee
+npm run allure:generate
+npm run allure:open
+```
+
+Test başarısız olsa da son iki komutu çalıştırın. `allure-results/` ham JSON ve ekleri,
+`allure-report/` ise grafikler, Suites, Behaviors ve Timeline içeren HTML dashboard'u tutar.
+HTML'yi dosya olarak çift tıklamak yerine `allure:open` ile açın.
+Standart Playwright raporu: `npm run report:redact` ardından `npm run report`.
+
+Mevcut `test.step()` adımları Allure'a aktarılır. Employee Management suite, feature,
+critical severity ve açıklama eklenmiştir. Başarısız denemelerde mevcut Playwright
+ayarlarına göre screenshot, video ve trace eklenir; başarılı denemede bulunmamaları normaldir.
+Trace ZIP dosyası indirildikten sonra `npx playwright show-trace <dosya.zip>` ile açılır.
+
+`test:employee` önce eski ham sonuçları temizler; HTML raporundaki history saklanır.
+`allure:generate` önce önceki HTML raporunun `history/` dizinini sonuçlara kopyalar.
+CI'da bu history main branch koşumları arasında Actions cache'inde saklanır; cache
+silinirse veya zaman aşımına uğrarsa trend yeniden başlar. İlk koşumda trend yoktur.
+Rapor üretimi test exit code'unu değiştirmez; CI'da başarısız test başarısız kalır.
+
+CI her sonuçtan sonra credential redaction çalıştırır, Allure HTML'yi üretir ve
+`allure-report` artifact'ini yükler. ZIP'i indirin, açın ve proje klasöründen
+`npx allure open /rapor/klasorunun/yolu` çalıştırın. Allure için Pages gerekmez;
+mevcut Pages job'u standart Playwright raporunu yayınlamaya devam eder.
+
+Giriş alanları videoda ve screenshot'ta maskelenir. Otomatik Playwright API adımları
+Allure'da kapalıdır; yalnızca anlamlı test adımları gösterilir. Reporter adımlarındaki
+credential değerleri maskelenir. Rapor üretiminden önce JSON, HTML ve trace ZIP'leri
+BRIGHTHR_EMAIL/BRIGHTHR_PASSWORD değerlerinden temizlenir. Secret'ları metadata veya
+console log'a eklemeyin. Raporlarda uygulama verisi ve session bilgileri bulunabileceği
+ için artifact erişimini güvenilir kişilerle sınırlayın.
