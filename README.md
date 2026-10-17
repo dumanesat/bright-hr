@@ -6,7 +6,7 @@ This repository contains a robust and scalable test automation framework built w
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v16 or higher)
+- [Node.js](https://nodejs.org/) (22 or higher)
 - [Visual Studio Code](https://code.visualstudio.com/) (Recommended)
 - Playwright Extension for VS Code
 
@@ -27,18 +27,9 @@ This repository contains a robust and scalable test automation framework built w
 
 ### Environment Setup
 
-Create a `.env` file in the root directory to manage your configuration. These variables are automatically loaded by the utility files.
-
-```ini
-# UI Configuration
-URL=https://example.com
-
-# API Configuration
-API_BASE_URL=https://api.example.com
-API_AUTH_TOKEN=your_bearer_token_here
-API_HTTP_USERNAME=your_username
-API_HTTP_PASSWORD=your_password
-```
+Copy `.env.example` to `.env.dev`, `.env.test`, `.env.staging`, and `.env.prod`.
+Set `BASE_URL`, `USERNAME`, and `PASSWORD` in each private file. TEST is the default.
+See the Turkish multi-environment guide below. Real credential files must not be committed.
 
 ---
 
@@ -84,7 +75,7 @@ test("GET Request Example", async ({ apiContext }) => {
 
 ### 2. UI Testing
 
-Use the `page` fixture which is pre-configured to navigate to your base URL and wait for the network to be idle. Usage of Page Object Model is encouraged.
+Use the `page` fixture which is pre-configured to navigate to the selected base URL and wait for DOMContentLoaded. Usage of Page Object Model is encouraged.
 
 - **Template File:** `tests/ui-test-example.spec.ts`
 - **Fixture:** `utilities/UITestUtils.ts`
@@ -96,7 +87,7 @@ import { test, expect } from "../utilities/UITestUtils";
 import { HomePage } from "../pages/HomePage";
 
 test("Login Example", async ({ page }) => {
-  // Page is already at process.env.URL
+  // Page is already at the selected environment baseURL
   const homePage = new HomePage(page);
   await homePage.enterSearchBox("Playwright");
   await expect(page).toHaveTitle(/Search/);
@@ -205,3 +196,70 @@ credential değerleri maskelenir. Rapor üretiminden önce JSON, HTML ve trace Z
 BRIGHTHR_EMAIL/BRIGHTHR_PASSWORD değerlerinden temizlenir. Secret'ları metadata veya
 console log'a eklemeyin. Raporlarda uygulama verisi ve session bilgileri bulunabileceği
  için artifact erişimini güvenilir kişilerle sınırlayın.
+
+
+## Çoklu ortam yapılandırması
+
+Desteklenen ortamlar DEV, TEST, STAGING ve PROD'dur. Varsayılan TEST'tir.
+Mevcut dört yerel dosya aynı BrightHR sandbox URL'sini ve hesabını kullanır; dört
+ayrı uygulama değildir. Gerçek credential dosyaları `.gitignore` ile dışlanır.
+Yeni checkout'ta `.env.example` dosyasını dört `.env.<ortam>` dosyasına kopyalayın:
+
+```ini
+BASE_URL=https://sandbox.example.invalid/
+USERNAME=your-sandbox-login
+PASSWORD=replace-with-sandbox-password
+```
+
+Bu örnek değerler çalışmaz; kendi sandbox değerlerinizi yerel dosyalara yazın.
+Eski `.env` test yapılandırmasına otomatik fallback sağlamaz.
+`config/ConfigManager.ts` yalnızca seçilen dosyayı okur ve değerleri doğrular.
+CI veya BASE_URL/PASSWORD enjeksiyonu varsa üç değerin tamamı process environment'dan
+gelmelidir. Eksik değerler başka bir ortamdan tamamlanmaz. USERNAME tek başına
+(OS kullanıcı adı olabileceği için) yerel dosya seçimini etkilemez.
+
+```bash
+npx playwright test                    # TEST varsayılan
+npm run test:dev
+npm run test:test
+npm run test:staging
+npm run test:prod                      # şimdilik yalnızca sandbox simülasyonu
+npx cross-env TEST_ENV=staging playwright test --project="Google Chrome"
+npm run test:dev -- --list             # veri oluşturmadan seçim kontrolü
+```
+
+Ortam seçimi browser seçiminden bağımsızdır. Yeni kodda `ConfigManager.getConfig()`
+ile typed `environment`, `baseURL`, `username`, `password` alınır. Page Object'lerde
+`login(username, password)` korunur. Yapılandırma nesnesini console'a yazmayın.
+
+Ortam değiştirirken Allure sonuçlarının karışmaması için önce `npm run allure:clean`
+çalıştırın. Sonra test komutu, `npm run allure:generate` ve `npm run allure:open` kullanın.
+Allure environment metadata'sında ortam adı görünür; Playwright HTML raporu için
+`npm run report:redact` ve `npm run report` çalışır.
+
+### GitHub Actions
+
+Push/PR otomatik olarak TEST kullanır. Actions → Employee UI test → Run workflow
+menüsünde dev/test/staging/prod seçilebilir. CI yerel `.env` dosyalarını okumaz.
+Mevcut repository secret'ları `URL`, `BRIGHTHR_EMAIL`, `BRIGHTHR_PASSWORD` dört demo
+ortamında da kullanılır; böylece şu an yeni secret eklemek gerekmez.
+
+Gerçek DEV/TEST/STAGING ayırımı için Settings → Environments altında dev, test,
+staging ve prod oluşturun. Her ortamda `BASE_URL` variable'ı ile `BRIGHTHR_EMAIL`
+ve `BRIGHTHR_PASSWORD` secret'larını tam bir takım olarak tanımlayın. Workflow bunları
+`BASE_URL`, `USERNAME`, `PASSWORD` olarak ConfigManager'a iletir. Ortam variable'ı
+yoksa mevcut sandbox `URL` secret'ı kullanılır. Environment secret'ları repository
+secret'larını aynı isimle override eder; karışmayı önlemek için takımı eksiksiz kurun.
+HTML/Allure artifact'leri ve hata exit code'ları korunur. Allure history cache anahtarı
+ortam ve branch içerir; DEV ve TEST geçmişleri CI'da birbirine karışmaz.
+
+### Gerçek production güvenliği
+
+PROD, yalnızca bilinen TEST sandbox adresiyle aynı URL'ye izin verir. Yerelde referans
+`.env.test` içindeki BASE_URL, CI'da referans repository `URL` secret'ıdır
+(`SANDBOX_BASE_URL` olarak iletilir). Bu sandbox referansını production adresiyle
+ değiştirmeyin veya prod environment içinde URL secret'ıyla override etmeyin.
+Farklı PROD URL'si test başlamadan reddedilir. `test:prod` gerçek production izni değildir.
+Gerçek production'a geçmeden önce açık onay alınmalı, GitHub prod environment'ında
+required reviewers ayarlanmalı ve yalnızca manuel, onaylı employee-creation workflow'u
+ayrıca hazırlanmalıdır. Şu an bu yolu açan bypass değişkeni yoktur.

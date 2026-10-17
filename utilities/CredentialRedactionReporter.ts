@@ -1,9 +1,10 @@
+import { ConfigManager } from '../config/ConfigManager';
 import type { Reporter, TestCase, TestResult, TestStep } from '@playwright/test/reporter';
 
 // Runs before other reporters so credential values cannot appear in action titles.
 export default class CredentialRedactionReporter implements Reporter {
   private redact(text: string): string {
-    for (const value of [process.env.BRIGHTHR_EMAIL, process.env.BRIGHTHR_PASSWORD]) {
+    for (const value of [ConfigManager.getConfig().username, ConfigManager.getConfig().password]) {
       if (value) text = text.split(value).join('[REDACTED]');
     }
     return text;

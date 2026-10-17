@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-import * as dotenv from 'dotenv';
+import { ConfigManager } from './config/ConfigManager';
 
-dotenv.config();
+const config = ConfigManager.getConfig();
 
 export default defineConfig({
   testDir: './tests',
@@ -17,10 +17,11 @@ export default defineConfig({
     ['allure-playwright', {
       resultsDir: 'allure-results',
       detail: false,
-      environmentInfo: { node: process.version, platform: process.platform },
+      environmentInfo: { environment: config.environment.toUpperCase(), node: process.version, platform: process.platform },
     }],
   ],
   use: {
+    baseURL: config.baseURL,
     headless: !!process.env.CI,
     trace: "retain-on-failure",
     screenshot: 'only-on-failure',

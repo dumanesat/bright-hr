@@ -1,3 +1,4 @@
+import { ConfigManager } from "../config/ConfigManager";
 import * as allure from "allure-js-commons";
 import { loginPage, homePage, employeePage, viewOrEditEmployeeProfilePage } from "../GlobalPage";
 import { createEmployeeData } from "../test-data/EmployeeDataFactory";
@@ -11,12 +12,7 @@ test.describe("Employee management", () => {
     await allure.severity("critical");
     await allure.description("Create two employees and verify their required and optional profile fields using full name and email.");
 
-    const username = process.env.BRIGHTHR_EMAIL;
-    const password = process.env.BRIGHTHR_PASSWORD;
-
-    if (!username || !password) {
-      throw new Error("Set BRIGHTHR_EMAIL and BRIGHTHR_PASSWORD in .env before running the test.");
-    }
+    const { username, password } = ConfigManager.getConfig();
 
     const employee = createEmployeeData();
     const secondEmployee = createEmployeeData();

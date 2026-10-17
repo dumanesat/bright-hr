@@ -3,7 +3,7 @@ import { initElements } from "../GlobalPage";
 
 
 //Extends the base test with custom UI setup.
-export const test = base_test.extend({page: async ({ page }, use: Function) => {
+export const test = base_test.extend({page: async ({ page, baseURL }, use: Function) => {
 
   // add the steps that are needed for UI setup here ...
     // Keep credentials visually masked in screenshots and video, including email.
@@ -17,7 +17,7 @@ export const test = base_test.extend({page: async ({ page }, use: Function) => {
       new MutationObserver(maskLoginInputs).observe(document, { childList: true, subtree: true });
       document.addEventListener('DOMContentLoaded', maskLoginInputs);
     });
-    await page.goto(`${process.env.URL}`, { waitUntil: "domcontentloaded" });
+    await page.goto(baseURL!, { waitUntil: "domcontentloaded" });
 
 
     initElements(page);

@@ -1,9 +1,15 @@
 // Scrub credential values before reports are uploaded or generated.
-require('dotenv').config({ quiet: true });
+const dotenv = require('dotenv');
 const fs = require('node:fs');
 const path = require('node:path');
 const AdmZip = require('adm-zip');
-const secrets = [process.env.BRIGHTHR_EMAIL, process.env.BRIGHTHR_PASSWORD].filter(Boolean);
+// Redact credentials from every local environment, not only the selected one.
+const secrets = [process.env.USERNAME, process.env.PASSWORD, process.env.BRIGHTHR_EMAIL, process.env.BRIGHTHR_PASSWORD].filter(Boolean);
+for (const name of ['.env', '.env.dev', '.env.test', '.env.staging', '.env.prod']) {
+  if (!fs.existsSync(name)) continue;
+  const values = dotenv.parse(fs.readFileSync(name));
+  secrets.push(...[values.USERNAME, values.PASSWORD, values.BRIGHTHR_EMAIL, values.BRIGHTHR_PASSWORD].filter(Boolean));
+}
 function redact(text) {
   for (const secret of secrets) {
     for (const value of [secret, JSON.stringify(secret).slice(1, -1), encodeURIComponent(secret)]) {

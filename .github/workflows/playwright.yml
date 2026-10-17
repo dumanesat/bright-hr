@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Sandbox simulation environment'
+        type: choice
+        required: true
+        default: test
+        options: [dev, test, staging, prod]
 
 permissions:
   contents: read
@@ -14,13 +21,17 @@ jobs:
   employee-test:
     outputs:
       report-id: ${{ steps.report.outputs.artifact-id }}
+    environment:
+      name: ${{ inputs.environment || 'test' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       CI: 'true'
-      URL: ${{ secrets.URL }}
-      BRIGHTHR_EMAIL: ${{ secrets.BRIGHTHR_EMAIL }}
-      BRIGHTHR_PASSWORD: ${{ secrets.BRIGHTHR_PASSWORD }}
+      TEST_ENV: ${{ inputs.environment || 'test' }}
+      BASE_URL: ${{ vars.BASE_URL || secrets.URL }}
+      USERNAME: ${{ secrets.BRIGHTHR_EMAIL }}
+      PASSWORD: ${{ secrets.BRIGHTHR_PASSWORD }}
+      SANDBOX_BASE_URL: ${{ secrets.URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,9 +41,9 @@ jobs:
       - name: Check required secrets
         shell: bash
         run: |
-          for key in URL BRIGHTHR_EMAIL BRIGHTHR_PASSWORD; do
+          for key in BASE_URL USERNAME PASSWORD; do
             if [ -z "${!key}" ]; then
-              echo "::error::Missing repository secret: $key"
+              echo "::error::Missing environment configuration: $key"
               exit 1
             fi
           done
@@ -49,9 +60,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: allure-report/history
-          key: allure-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: allure-history-${{ env.TEST_ENV }}-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            allure-history-${{ runner.os }}-${{ github.ref_name }}-
+            allure-history-${{ env.TEST_ENV }}-${{ runner.os }}-${{ github.ref_name }}-
       - name: Run employee test
         run: npm run test:employee
       - name: Redact report credentials
@@ -75,7 +86,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: allure-report/history
-          key: allure-history-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: allure-history-${{ env.TEST_ENV }}-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Upload Playwright report
         id: report
         if: ${{ !cancelled() && steps.redact.outcome == 'success' }}

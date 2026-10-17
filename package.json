@@ -13,7 +13,11 @@
     "allure:clean": "node scripts/allure-report.cjs clean",
     "allure:generate": "npm run report:redact && node scripts/allure-report.cjs generate",
     "allure:open": "allure open allure-report",
-    "report:redact": "node scripts/redact-reports.cjs"
+    "report:redact": "node scripts/redact-reports.cjs",
+    "test:dev": "cross-env TEST_ENV=dev playwright test",
+    "test:test": "cross-env TEST_ENV=test playwright test",
+    "test:staging": "cross-env TEST_ENV=staging playwright test",
+    "test:prod": "cross-env TEST_ENV=prod playwright test"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +32,7 @@
     "allure-commandline": "^2.46.1",
     "allure-js-commons": "^3.13.0",
     "allure-playwright": "^3.13.0",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.2.3"
   }
 }
